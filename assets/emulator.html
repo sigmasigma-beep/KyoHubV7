@@ -11,7 +11,6 @@
 <body>
 <div id="game-container"></div>
 
-<script src="js/controls.js"></script>
 <script>
     /* Every launch navigates this page fresh (it's loaded in a new iframe each
        time), so EmulatorJS's globals only ever get declared once per page —
@@ -25,7 +24,10 @@
     window.EJS_gameName = params.get('name') || 'Game';
     window.EJS_color = params.get('color') || '#7c3aed';
     window.EJS_startOnLoaded = true;
-    window.EJS_defaultControls = buildEJSDefaultControls();
+    // Custom default-control injection removed for now — it was the one
+    // non-standard piece here and lines up with where the crash starts.
+    // Bind keys per-game instead via EmulatorJS's own gear-icon menu
+    // in the player until this is revisited.
 
     const script = document.createElement('script');
     script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";

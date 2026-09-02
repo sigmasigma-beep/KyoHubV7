@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KyoHubV7</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #0b0714;
+        --bg-deep: #050308;
+        --accent: #7c3aed;
+        --accent-glow: #a78bfa;
+        --accent2: #3b6bfd;
+        --card-bg: #130c22;
+        --card-border: #2a1f4a;
+        --card-border-hover: #4c2f8f;
+        --text: #e8e2f7;
+        --text-dim: #9689b8;
+        --mono: 'Share Tech Mono', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+        font-family: 'Rajdhani', sans-serif;
+        color: var(--text);
+        min-height: 100vh;
+        background:
+            radial-gradient(ellipse 70% 60% at 10% 0%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 60%),
+            radial-gradient(ellipse 60% 55% at 95% 15%, color-mix(in srgb, var(--accent2) 18%, transparent), transparent 65%),
+            radial-gradient(ellipse 80% 60% at 50% 100%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+            var(--bg);
+        background-attachment: fixed;
+        position: relative;
+    }
+
+    /* ---------- ORIGINAL NIGHT-SCENE BACKDROP (Umbreon theme only) ---------- */
+    #night-scene {
+        position: fixed; inset: 0; z-index: -1; pointer-events: none;
+        opacity: 0.55; transition: opacity 0.3s;
+        background: url('assets/backgrounds/umbreon-scene.svg') center center / cover no-repeat;
+    }
+    #night-scene.hidden { display: none; }
+
+    /* ---------- HEADER ---------- */
+    header {
+        position: sticky; top: 0; z-index: 50;
+        background: color-mix(in srgb, var(--bg-deep) 85%, transparent);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--card-border);
+        padding: 1rem 1.5rem;
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 1.5rem; flex-wrap: wrap;
+    }
+    .logo { font-size: 1.8rem; font-weight: 700; letter-spacing: 0.5px; }
+    .logo span { color: var(--accent-glow); }
+
+    nav.tabs {
+        display: flex; gap: 0.4rem;
+        background: rgba(127,127,127,0.06);
+        border: 1px solid var(--card-border);
+        border-radius: 8px; padding: 4px;
+    }
+    nav.tabs button {
+        font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600;
+        background: none; border: none; color: var(--text-dim);
+        padding: 8px 18px; border-radius: 6px; cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+    nav.tabs button.active {
+        background: linear-gradient(180deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 60%, black) 100%);
+        color: #ffffff;
+    }
+    nav.tabs button:not(.active):hover { color: var(--text); }
+
+    .search-bar {
+        width: 260px; background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        padding: 10px 15px; border-radius: 6px;
+    }
+    .search-bar input {
+        width: 100%; background: none; border: none; color: var(--text);
+        outline: none; font-family: 'Rajdhani', sans-serif; font-size: 1rem;
+    }
+
+    /* ---------- SECTIONS ---------- */
+    section.panel { padding: 2.2rem 1.5rem 3rem; max-width: 1400px; margin: 0 auto; }
+    section.panel h2 {
+        font-size: 1.4rem; font-weight: 700; margin-bottom: 1.2rem;
+        padding-left: 0.8rem; border-left: 3px solid var(--accent);
+    }
+    .hidden { display: none !important; }
+
+    /* ---------- GAME GRID ---------- */
+    .game-grid, .core-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.2rem;
+    }
+    .game-card {
+        background: var(--card-bg); border: 1px solid var(--card-border);
+        border-radius: 8px; overflow: hidden; cursor: pointer;
+        transition: border-color 0.15s, transform 0.15s;
+    }
+    .game-card:hover { border-color: var(--card-border-hover); transform: translateY(-2px); }
+    .game-thumb {
+        height: 130px; display: flex; align-items: center; justify-content: center;
+        background: color-mix(in srgb, var(--card-bg) 70%, black); overflow: hidden;
+    }
+    .game-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .game-thumb .fallback { font-family: var(--mono); font-size: 2rem; color: var(--accent-glow); opacity: 0.6; }
+    .game-info { padding: 12px; }
+    .game-name { font-weight: 700; font-size: 1.05rem; text-transform: capitalize; }
+    .game-cat { font-size: 0.8rem; color: var(--accent2); }
+
+    .scan-status {
+        grid-column: 1 / -1; color: var(--text-dim); font-family: var(--mono);
+        font-size: 0.9rem; padding: 1.2rem 0.4rem; line-height: 1.5;
+    }
+
+    /* ---------- CORES ---------- */
+    .core-card {
+        background: var(--card-bg); border: 1px solid var(--card-border);
+        border-radius: 8px; padding: 1.1rem;
+    }
+    .core-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem; }
+    .core-name { font-weight: 700; font-size: 1.15rem; }
+    .core-tag {
+        font-family: var(--mono); font-size: 0.7rem; color: var(--accent2);
+        border: 1px solid var(--card-border-hover); border-radius: 4px; padding: 2px 8px;
+    }
+    .rom-list { display: flex; flex-direction: column; gap: 6px; max-height: 160px; overflow-y: auto; }
+    .rom-item {
+        font-size: 0.95rem; background: rgba(127,127,127,0.05);
+        border: 1px solid var(--card-border); border-radius: 6px; padding: 8px 10px;
+        cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+        transition: background 0.15s, border-color 0.15s;
+    }
+    .rom-item:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); border-color: var(--card-border-hover); }
+    .rom-item span.play { color: var(--accent-glow); font-family: var(--mono); font-size: 0.75rem; }
+    .rom-empty { font-size: 0.9rem; color: var(--text-dim); font-style: italic; padding: 8px 2px; }
+    .rom-upload { margin-top: 0.8rem; font-size: 0.8rem; color: var(--text-dim); }
+    .rom-upload input { display: none; }
+    .rom-upload label {
+        display: inline-block; font-family: var(--mono); font-size: 0.75rem; color: var(--accent2);
+        border: 1px dashed var(--card-border-hover); border-radius: 5px; padding: 5px 10px; cursor: pointer;
+    }
+    .rom-upload label:hover { color: var(--accent-glow); border-color: var(--accent-glow); }
+
+    /* ---------- SETTINGS ---------- */
+    .settings-block {
+        background: var(--card-bg); border: 1px solid var(--card-border);
+        border-radius: 8px; padding: 1.4rem; margin-bottom: 1.5rem; max-width: 720px;
+    }
+    .settings-block h3 { font-size: 1.1rem; margin-bottom: 1rem; color: var(--accent-glow); }
+    .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.9rem; }
+    .theme-swatch {
+        border: 2px solid var(--card-border); border-radius: 8px; padding: 0.8rem;
+        cursor: pointer; transition: border-color 0.15s; background: rgba(127,127,127,0.04);
+    }
+    .theme-swatch.active { border-color: var(--accent-glow); }
+    .theme-swatch .strip { height: 34px; border-radius: 5px; margin-bottom: 8px; }
+    .theme-swatch .label { font-size: 0.9rem; font-weight: 600; }
+    .repo-detect { font-size: 0.85rem; color: var(--text-dim); font-family: var(--mono); line-height: 1.6; }
+    .repo-detect strong { color: var(--accent-glow); }
+
+    .control-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 0.7rem; }
+    .control-row {
+        display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        background: rgba(127,127,127,0.05); border: 1px solid var(--card-border);
+        border-radius: 6px; padding: 8px 12px;
+    }
+    .control-row .action-label { font-weight: 600; font-size: 0.95rem; }
+    .control-row button.bind-btn {
+        font-family: var(--mono); font-size: 0.8rem; min-width: 92px;
+        background: var(--card-bg); border: 1px solid var(--card-border-hover); color: var(--accent-glow);
+        border-radius: 5px; padding: 6px 10px; cursor: pointer;
+    }
+    .control-row button.bind-btn.listening { color: var(--accent2); animation: pulse 1s infinite; }
+    @keyframes pulse { 50% { opacity: 0.4; } }
+    .controls-reset {
+        margin-top: 1rem; background: none; border: 1px solid var(--card-border-hover);
+        color: var(--text-dim); padding: 7px 14px; border-radius: 5px; cursor: pointer;
+        font-family: 'Rajdhani', sans-serif; font-size: 0.9rem;
+    }
+    .controls-reset:hover { color: var(--text); }
+
+    /* ---------- LOADING / PLAYER ---------- */
+    .loading-screen {
+        position: fixed; inset: 0; background: var(--bg-deep); display: none;
+        flex-direction: column; align-items: center; justify-content: center; z-index: 1000; gap: 20px;
+    }
+    .spinner {
+        width: 50px; height: 50px; border: 4px solid var(--card-border);
+        border-top: 4px solid var(--accent-glow); border-radius: 50%; animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-screen div.label { color: var(--accent2); font-family: var(--mono); letter-spacing: 1px; }
+
+    .player-overlay { position: fixed; inset: 0; background: var(--bg-deep); z-index: 999; display: flex; flex-direction: column; }
+    .player-bar {
+        padding: 12px 20px; background: var(--card-bg); border-bottom: 1px solid var(--card-border);
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .player-bar .title { font-weight: 700; }
+    .player-bar button.open-new {
+        margin-right: 12px; background: linear-gradient(180deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 60%, black) 100%);
+        border: none; color: #ffffff; padding: 6px 14px; border-radius: 4px; cursor: pointer;
+        font-family: 'Rajdhani', sans-serif; font-weight: 600;
+    }
+    .player-bar button.close-x { background: none; border: none; color: var(--accent-glow); font-size: 1.6rem; cursor: pointer; line-height: 1; }
+    .player-overlay iframe, .player-overlay #game-container { flex: 1; border: none; width: 100%; }
+</style>
+</head>
+<body>
+
+<!-- Original abstract night-scene backdrop, only shown for the Umbreon theme.
+     Image lives in assets/backgrounds/umbreon-scene.svg and is applied via CSS above. -->
+<div id="night-scene" class="hidden"></div>
+
+<header>
+    <div class="logo">KYO<span>HUB</span>V7</div>
+    <nav class="tabs">
+        <button class="active" data-tab="games" onclick="switchTab('games')">Games</button>
+        <button data-tab="cores" onclick="switchTab('cores')">Cores</button>
+        <button data-tab="settings" onclick="switchTab('settings')">Settings</button>
+    </nav>
+    <div class="search-bar">
+        <input type="text" id="search" placeholder="Search..." onkeyup="renderAll()">
+    </div>
+</header>
+
+<!-- ============ GAMES TAB ============ -->
+<section class="panel" id="tab-games">
+    <h2>Game Library</h2>
+    <div class="game-grid" id="game-grid">
+        <div class="scan-status">Scanning /games/ …</div>
+    </div>
+</section>
+
+<!-- ============ CORES TAB ============ -->
+<section class="panel hidden" id="tab-cores">
+    <h2>Emulator Cores</h2>
+    <div class="core-grid" id="core-grid"></div>
+</section>
+
+<!-- ============ SETTINGS TAB ============ -->
+<section class="panel hidden" id="tab-settings">
+    <h2>Settings</h2>
+
+    <div class="settings-block">
+        <h3>Theme</h3>
+        <div class="theme-grid" id="theme-grid"></div>
+    </div>
+
+    <div class="settings-block">
+        <h3>Controls</h3>
+        <div class="control-grid" id="control-grid"></div>
+        <button class="controls-reset" onclick="resetControls()">Reset to defaults</button>
+        <div class="settings-hint" style="margin-top:0.9rem;">
+            Click a button, then press the key you want for that action. Applies to Player 1
+            (keyboard) the next time you open a game in the Cores or Games tab. Every game also
+            has its own in-emulator control menu (gear icon in the player) if you need gamepad
+            binding or a second player.
+        </div>
+    </div>
+
+    <div class="settings-block">
+        <h3>Repository</h3>
+        <div class="repo-detect" id="repo-detect">Detecting…</div>
+    </div>
+</section>
+
+<div class="loading-screen" id="loading">
+    <div class="spinner"></div>
+    <div class="label" id="loading-label">LOADING...</div>
+</div>
+
+<script src="assets/js/controls.js"></script>
+<script>
+/* =====================================================
+   THEMES
+===================================================== */
+const THEMES = {
+    umbreon: { name: "Umbreon", scene: true, vars: {
+        '--bg': '#0b0714', '--bg-deep': '#050308',
+        '--accent': '#7c3aed', '--accent-glow': '#a78bfa', '--accent2': '#3b6bfd',
+        '--card-bg': '#130c22', '--card-border': '#2a1f4a', '--card-border-hover': '#4c2f8f',
+        '--text': '#e8e2f7', '--text-dim': '#9689b8'
+    }},
+    cyan: { name: "Cyan", scene: false, vars: {
+        '--bg': '#040c10', '--bg-deep': '#020608',
+        '--accent': '#06b6d4', '--accent-glow': '#67e8f9', '--accent2': '#22d3ee',
+        '--card-bg': '#0a181c', '--card-border': '#123640', '--card-border-hover': '#1c525e',
+        '--text': '#dff7fa', '--text-dim': '#7fb8c2'
+    }},
+    red: { name: "Red", scene: false, vars: {
+        '--bg': '#0d0505', '--bg-deep': '#060202',
+        '--accent': '#dc2626', '--accent-glow': '#f87171', '--accent2': '#ef4444',
+        '--card-bg': '#1a0b0b', '--card-border': '#3d1414', '--card-border-hover': '#6b1f1f',
+        '--text': '#f7e6e6', '--text-dim': '#b98a8a'
+    }},
+    dark: { name: "Dark Mode", scene: false, vars: {
+        '--bg': '#0d0d0f', '--bg-deep': '#08080a',
+        '--accent': '#52525b', '--accent-glow': '#a1a1aa', '--accent2': '#71717a',
+        '--card-bg': '#17171a', '--card-border': '#2a2a2e', '--card-border-hover': '#3f3f46',
+        '--text': '#e5e5e7', '--text-dim': '#8b8b8f'
+    }},
+    light: { name: "Light Mode", scene: false, vars: {
+        '--bg': '#f4f4f7', '--bg-deep': '#ffffff',
+        '--accent': '#4f46e5', '--accent-glow': '#6d64ea', '--accent2': '#6366f1',
+        '--card-bg': '#ffffff', '--card-border': '#e0e0e8', '--card-border-hover': '#c7c7d6',
+        '--text': '#1a1a1f', '--text-dim': '#6b6b75'
+    }}
+};
+
+function applyTheme(id) {
+    const theme = THEMES[id] || THEMES.umbreon;
+    Object.entries(theme.vars).forEach(([k, v]) => document.documentElement.style.setProperty(k, v));
+    document.querySelectorAll('.theme-swatch').forEach(el => el.classList.toggle('active', el.dataset.id === id));
+    document.getElementById('night-scene').classList.toggle('hidden', !theme.scene);
+    localStorage.setItem('kyohub-theme', id);
+}
+
+function renderThemeGrid() {
+    const grid = document.getElementById('theme-grid');
+    const current = localStorage.getItem('kyohub-theme') || 'umbreon';
+    grid.innerHTML = '';
+    Object.entries(THEMES).forEach(([id, theme]) => {
+        const el = document.createElement('div');
+        el.className = 'theme-swatch' + (id === current ? ' active' : '');
+        el.dataset.id = id;
+        el.innerHTML = `
+            <div class="strip" style="background:linear-gradient(90deg, ${theme.vars['--accent']}, ${theme.vars['--accent2']}, ${theme.vars['--bg-deep']})"></div>
+            <div class="label">${theme.name}</div>`;
+        el.onclick = () => applyTheme(id);
+        grid.appendChild(el);
+    });
+}
+
+/* =====================================================
+   CONTROLS — Settings-page UI only. The shared mapping data
+   (CONTROL_ACTIONS, DEFAULT_CONTROLS, getControls, saveControls,
+   buildEJSDefaultControls) lives in assets/js/controls.js so both
+   this page and the emulator frame use the exact same source of truth.
+===================================================== */
+function resetControls() { resetControlsStorage(); renderControlGrid(); }
+
+// Best-effort conversion from a KeyboardEvent to the key-name vocabulary
+// EmulatorJS's default mapping uses (e.g. 'up arrow', 'enter', 'x').
+function normalizeKeyName(e) {
+    const specials = {
+        'ArrowUp': 'up arrow', 'ArrowDown': 'down arrow', 'ArrowLeft': 'left arrow', 'ArrowRight': 'right arrow',
+        'Enter': 'enter', ' ': 'space', 'Shift': 'shift', 'Control': 'ctrl', 'Alt': 'alt',
+        'Tab': 'tab', 'Escape': 'esc', 'Backspace': 'backspace', 'CapsLock': 'caps lock'
+    };
+    if (specials[e.key]) return specials[e.key];
+    if (e.key.length === 1) return e.key.toLowerCase();
+    return e.key.toLowerCase();
+}
+
+function renderControlGrid() {
+    const grid = document.getElementById('control-grid');
+    const controls = getControls();
+    grid.innerHTML = '';
+    CONTROL_ACTIONS.forEach(action => {
+        const row = document.createElement('div');
+        row.className = 'control-row';
+        row.innerHTML = `
+            <span class="action-label">${action.label}</span>
+            <button class="bind-btn" data-key="${action.key}">${controls[action.key]}</button>`;
+        grid.appendChild(row);
+    });
+    grid.querySelectorAll('.bind-btn').forEach(btn => {
+        btn.onclick = () => {
+            grid.querySelectorAll('.bind-btn.listening').forEach(b => b.classList.remove('listening'));
+            btn.classList.add('listening');
+            btn.textContent = 'Press a key…';
+            const handler = (e) => {
+                e.preventDefault();
+                const name = normalizeKeyName(e);
+                const controls = getControls();
+                controls[btn.dataset.key] = name;
+                saveControls(controls);
+                btn.textContent = name;
+                btn.classList.remove('listening');
+                window.removeEventListener('keydown', handler, true);
+            };
+            window.addEventListener('keydown', handler, true);
+        };
+    });
+}
+
+/* =====================================================
+   REPO AUTO-DETECTION — no manual setup.
+   GitHub Pages serves project sites at username.github.io/repo-name/
+   and user/org sites at username.github.io/ (repo = username.github.io).
+===================================================== */
+function detectRepoConfig() {
+    const host = location.hostname;
+    const pathParts = location.pathname.split('/').filter(Boolean);
+    if (host.endsWith('.github.io')) {
+        const owner = host.split('.')[0];
+        const repo = pathParts.length ? pathParts[0] : `${owner}.github.io`;
+        return { owner, repo };
+    }
+    return null; // custom domain / local file — can't infer from the URL
+}
+
+/* =====================================================
+   GAMES — scanned live from /games/ via GitHub's API.
+===================================================== */
+const ROM_CORES = {
+    nes: 'nes', fds: 'nes',
+    sfc: 'snes', smc: 'snes',
+    md: 'segaMD', gen: 'segaMD', smd: 'segaMD',
+    gba: 'gba',
+    gb: 'gb', gbc: 'gb',
+    n64: 'n64', z64: 'n64', v64: 'n64',
+    nds: 'nds',
+    cue: 'psx', chd: 'psx', pbp: 'psx', iso: 'psx',
+};
+const IMAGE_RE = /\.(png|jpe?g|gif|webp)$/i;
+let GAMES_CACHE = [];
+let REPO_CFG = null;
+let REPO_BRANCH = 'main';
+
+async function ghListDir(path) {
+    const url = `https://api.github.com/repos/${REPO_CFG.owner}/${REPO_CFG.repo}/contents/${path}?ref=${REPO_BRANCH}`;
+    const res = await fetch(url, { headers: { Accept: 'application/vnd.github+json' } });
+    if (!res.ok) throw new Error(`${res.status}`);
+    return res.json();
+}
+async function ghWalk(path, depth) {
+    if (depth <= 0) return [];
+    const items = await ghListDir(path);
+    let files = [];
+    for (const item of items) {
+        if (item.type === 'file') files.push(item);
+        else if (item.type === 'dir') files = files.concat(await ghWalk(item.path, depth - 1));
+    }
+    return files;
+}
+function formatTitle(folderName) { return folderName.replace(/[_-]+/g, ' ').trim(); }
+
+async function detectBranch() {
+    for (const b of ['main', 'master']) {
+        try {
+            const res = await fetch(`https://api.github.com/repos/${REPO_CFG.owner}/${REPO_CFG.repo}/contents/games?ref=${b}`);
+            if (res.ok) return b;
+        } catch (e) { /* try next */ }
+    }
+    return 'main';
+}
+
+async function scanGamesFolder() {
+    const grid = document.getElementById('game-grid');
+    const repoDetect = document.getElementById('repo-detect');
+    grid.innerHTML = '<div class="scan-status">Scanning /games/ …</div>';
+
+    REPO_CFG = detectRepoConfig();
+
+    if (!REPO_CFG) {
+        grid.innerHTML = `<div class="scan-status">Couldn't detect a GitHub Pages repo from this URL
+            (${location.hostname}${location.pathname}). Auto-scan only works once this is live on
+            a *.github.io address — it won't work opening the file locally, and custom domains
+            aren't auto-detected.</div>`;
+        repoDetect.innerHTML = `Not detected — this only works when served from a *.github.io URL.`;
+        return;
+    }
+
+    repoDetect.innerHTML = `Detected: <strong>${REPO_CFG.owner}/${REPO_CFG.repo}</strong> — auto-detected from this page's URL, no setup needed.`;
+
+    try {
+        REPO_BRANCH = await detectBranch();
+        const topLevel = await ghListDir('games');
+        const folders = topLevel.filter(i => i.type === 'dir');
+
+        if (folders.length === 0) {
+            grid.innerHTML = `<div class="scan-status">No folders found in /games/ yet — add one per game.</div>`;
+            GAMES_CACHE = [];
+            return;
+        }
+
+        const games = [];
+        for (const folder of folders) {
+            let allFiles = [];
+            try { allFiles = await ghWalk(folder.path, 3); } catch (e) { continue; }
+
+            const launcherHtml = allFiles.find(f => /index\.html$/i.test(f.name));
+            const thumb = allFiles.find(f => IMAGE_RE.test(f.name));
+            let game = { name: formatTitle(folder.name), thumb: thumb ? thumb.path : null };
+
+            if (launcherHtml) {
+                game.type = 'webgl';
+                game.path = launcherHtml.path;
+            } else {
+                const romFile = allFiles.find(f => ROM_CORES[f.name.split('.').pop().toLowerCase()]);
+                if (romFile) {
+                    game.type = 'rom';
+                    game.path = romFile.path;
+                    game.core = ROM_CORES[romFile.name.split('.').pop().toLowerCase()];
+                } else { continue; }
+            }
+            games.push(game);
+        }
+        GAMES_CACHE = games;
+        renderGames(document.getElementById('search').value.toLowerCase());
+    } catch (err) {
+        grid.innerHTML = `<div class="scan-status">Couldn't reach GitHub's API for
+            <strong>${REPO_CFG.owner}/${REPO_CFG.repo}</strong> (${err.message}).
+            Make sure the repo is public and pushed, and that it actually has a /games/ folder.</div>`;
+    }
+}
+
+function renderGames(searchTerm) {
+    const grid = document.getElementById('game-grid');
+    const filtered = GAMES_CACHE.filter(g => g.name.toLowerCase().includes(searchTerm || ''));
+    if (GAMES_CACHE.length === 0) return; // leave whatever status message is already shown
+    if (filtered.length === 0) { grid.innerHTML = `<div class="scan-status">No games match.</div>`; return; }
+    grid.innerHTML = '';
+    filtered.forEach(g => {
+        const card = document.createElement('div');
+        card.className = 'game-card';
+        card.innerHTML = `
+            <div class="game-thumb">${g.thumb ? `<img src="${g.thumb}" alt="${g.name}">` : `<div class="fallback">${g.name.charAt(0).toUpperCase()}</div>`}</div>
+            <div class="game-info">
+                <div class="game-name">${g.name}</div>
+                <div class="game-cat">${g.type === 'rom' ? g.core.toUpperCase() : 'WebGL'}</div>
+            </div>`;
+        card.onclick = () => g.type === 'webgl' ? openWebGame(g.path, g.name) : launchInEmulatorFrame(g.core, g.path, g.name);
+        grid.appendChild(card);
+    });
+}
+
+/* =====================================================
+   EMULATOR CORES TAB (manual/local ROMs + manifest)
+===================================================== */
+const SYSTEMS = [
+    { id: "nes",     name: "NES",           core: "nes",     folder: "roms/nes",     roms: [] },
+    { id: "snes",    name: "SNES",          core: "snes",    folder: "roms/snes",    roms: [] },
+    { id: "genesis", name: "Genesis",       core: "segaMD",  folder: "roms/genesis", roms: [] },
+    { id: "gba",     name: "Game Boy Adv.", core: "gba",     folder: "roms/gba",     roms: [] },
+    { id: "n64",     name: "N64",           core: "n64",     folder: "roms/n64",     roms: [] },
+    { id: "psx",     name: "PlayStation",   core: "psx",     folder: "roms/psx",     roms: [] },
+];
+
+function renderCores(searchTerm) {
+    const grid = document.getElementById('core-grid');
+    grid.innerHTML = '';
+    SYSTEMS.forEach(sys => {
+        const matches = sys.roms.filter(r => r.name.toLowerCase().includes(searchTerm || ''));
+        const card = document.createElement('div');
+        card.className = 'core-card';
+        const listHTML = matches.length
+            ? matches.map(r => `
+                <div class="rom-item" data-sys="${sys.id}" data-file="${r.file}" data-name="${r.name.replace(/"/g,'&quot;')}">
+                    <span>${r.name}</span><span class="play">PLAY ▸</span>
+                </div>`).join('')
+            : `<div class="rom-empty">No ROMs listed for ${sys.name} — drop files in /${sys.folder}/ and add them to the SYSTEMS manifest, or load one below.</div>`;
+        card.innerHTML = `
+            <div class="core-card-head">
+                <div class="core-name">${sys.name}</div>
+                <div class="core-tag">${sys.core}</div>
+            </div>
+            <div class="rom-list">${listHTML}</div>
+            <div class="rom-upload">
+                <label>+ Load local ROM
+                    <input type="file" data-sys="${sys.id}" onchange="loadLocalRom(event)">
+                </label>
+            </div>`;
+        grid.appendChild(card);
+    });
+    grid.querySelectorAll('.rom-item').forEach(item => {
+        item.onclick = () => {
+            const sys = SYSTEMS.find(s => s.id === item.dataset.sys);
+            launchInEmulatorFrame(sys.core, `${sys.folder}/${item.dataset.file}`, item.dataset.name);
+        };
+    });
+}
+function loadLocalRom(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const sys = SYSTEMS.find(s => s.id === event.target.dataset.sys);
+    launchInEmulatorFrame(sys.core, URL.createObjectURL(file), file.name);
+}
+
+/* =====================================================
+   TABS / SEARCH
+===================================================== */
+function switchTab(tab) {
+    document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.getElementById('tab-games').classList.toggle('hidden', tab !== 'games');
+    document.getElementById('tab-cores').classList.toggle('hidden', tab !== 'cores');
+    document.getElementById('tab-settings').classList.toggle('hidden', tab !== 'settings');
+}
+function renderAll() {
+    const searchTerm = document.getElementById('search').value.toLowerCase();
+    renderGames(searchTerm);
+    renderCores(searchTerm);
+}
+
+/* =====================================================
+   LAUNCHERS
+===================================================== */
+function openWebGame(path, name) {
+    const loading = document.getElementById('loading');
+    document.getElementById('loading-label').textContent = 'LOADING...';
+    loading.style.display = 'flex';
+    setTimeout(() => {
+        const modalHTML = `
+        <div class="player-overlay">
+            <div class="player-bar">
+                <div class="title">${name}</div>
+                <div>
+                    <button class="open-new" onclick="window.open('${path}','_blank')">Open in New Tab</button>
+                    <button class="close-x" onclick="this.closest('.player-overlay').remove()">✕</button>
+                </div>
+            </div>
+            <iframe src="${path}" allowfullscreen allow="autoplay; fullscreen; gamepad"></iframe>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        loading.style.display = 'none';
+    }, 400);
+}
+
+// Launches a ROM inside assets/emulator.html, loaded fresh in its own iframe
+// every time. That isolation is what prevents EmulatorJS's own globals from
+// colliding if it's ever launched twice in one session (each iframe gets a
+// brand-new JS environment, so nothing is declared more than once).
+function launchInEmulatorFrame(core, gameUrl, name) {
+    const absoluteGameUrl = new URL(gameUrl, location.href).href;
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    const src = `assets/emulator.html?core=${encodeURIComponent(core)}`
+        + `&game=${encodeURIComponent(absoluteGameUrl)}`
+        + `&name=${encodeURIComponent(name)}`
+        + `&color=${encodeURIComponent(accent)}`;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'player-overlay';
+    overlay.innerHTML = `
+        <div class="player-bar">
+            <div class="title">${name}</div>
+            <div><button class="close-x" onclick="this.closest('.player-overlay').remove()">✕</button></div>
+        </div>
+        <iframe src="${src}" allowfullscreen allow="autoplay; fullscreen; gamepad"></iframe>`;
+    document.body.appendChild(overlay);
+}
+
+/* =====================================================
+   INIT
+===================================================== */
+applyTheme(localStorage.getItem('kyohub-theme') || 'umbreon');
+renderThemeGrid();
+renderControlGrid();
+renderCores('');
+scanGamesFolder();
+</script>
+</body>
+</html>
